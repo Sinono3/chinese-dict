@@ -31,5 +31,8 @@ int main(int argc, char **argv) {
 
   window->end();
   window->show(argc, argv);
+
+  std::cout<<"Hola mundo!";
+
   return Fl::run();
 }
