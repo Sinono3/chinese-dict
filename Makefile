@@ -1,31 +1,23 @@
-# SRC = src/main.cpp
-SRC = src/pinyin.cpp
-CXX = g++
-CXXFLAGS = -Wall $(shell fltk-config --cxxflags) --std=c++20
-
-LFLAGS = $(shell fltk-config --ldstaticflags)
-
-OBJS = $(SRC:.cpp=.o)
-
-%.o: %.cpp
-	$(CXX) $(CXXFLAGS) -c $(<) -o $(@)
-
+SRC = src/main.cpp
+BUILDDIR = build
 EXE = build/chinese-dict
 
+CXX = g++
+CXXFLAGS = -Wall --std=c++20 $(shell fltk-config --cxxflags)
+LFLAGS = $(shell fltk-config --ldstaticflags)
+
+OBJS = $(SRC:%=$(BUILDDIR)/%.o)
+
 all: $(EXE)
+run: $(EXE)
+	$(EXE)
+clean:
+	rm -rf $(BUILDDIR)
+.PHONY: all run clean
+
+$(BUILDDIR)/%.cpp.o: %.cpp
+	mkdir -p $(dir $@)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
 
 $(EXE): $(OBJS)
 	$(CXX) -o $@ $^ $(LFLAGS)
-
-%.o: %.cpp *.h
-	 $(CXX) -o $@ -c $< $(CXXFLAGS)
-
-depend:
-	makedepend -- $(CXXFLAGS) -- $(SRC)
-
-strip: $(EXE)
-	strip --strip-all $(EXE)
-
-clean:
-	rm -f $(EXE)
-
