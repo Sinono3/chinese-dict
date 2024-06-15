@@ -1,0 +1,111 @@
+object AddNewEntryWindow: TAddNewEntryWindow
+  Left = 0
+  Top = 0
+  Caption = 'A window for adding a new dictionary entry'
+  ClientHeight = 544
+  ClientWidth = 604
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  object CharLabel: TLabel
+    Position.X = 88.000000000000000000
+    Position.Y = 169.000000000000000000
+    Text = 'Character'
+    TabOrder = 0
+  end
+  object PinyinLabel: TLabel
+    Position.X = 88.000000000000000000
+    Position.Y = 249.000000000000000000
+    Text = 'Pinyin'
+    TabOrder = 1
+  end
+  object DefLabel: TLabel
+    Position.X = 88.000000000000000000
+    Position.Y = 329.000000000000000000
+    Text = 'Definition'
+    TabOrder = 2
+  end
+  object CharEditBox: TEdit
+    Touch.InteractiveGestures = [LongTap, DoubleTap]
+    TabOrder = 3
+    Position.X = 200.000000000000000000
+    Position.Y = 152.000000000000000000
+    Size.Width = 289.000000000000000000
+    Size.Height = 49.000000000000000000
+    Size.PlatformDefault = False
+    object DefEditBox: TEdit
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      TabOrder = 3
+      Position.Y = 160.000000000000000000
+      Size.Width = 289.000000000000000000
+      Size.Height = 49.000000000000000000
+      Size.PlatformDefault = False
+      object ClearEditButton3: TClearEditButton
+        CanFocus = False
+        Cursor = crArrow
+        Size.Width = 28.000000000000000000
+        Size.Height = 45.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        OnClick = ClearEditButton3Click
+      end
+    end
+    object ClearEditButton1: TClearEditButton
+      CanFocus = False
+      Cursor = crArrow
+      Size.Width = 28.000000000000000000
+      Size.Height = 45.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      OnClick = ClearEditButton1Click
+    end
+    object PinyinEditBox: TEdit
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      TabOrder = 4
+      Position.Y = 81.000000000000000000
+      Size.Width = 289.000000000000000000
+      Size.Height = 49.000000000000000000
+      Size.PlatformDefault = False
+      object ClearEditButton2: TClearEditButton
+        CanFocus = False
+        Cursor = crArrow
+        Size.Width = 28.000000000000000000
+        Size.Height = 45.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        OnClick = ClearEditButton2Click
+      end
+    end
+  end
+  object AddNewEntryWindowLabel: TLabel
+    Position.X = 240.000000000000000000
+    Position.Y = 79.000000000000000000
+    Size.Width = 185.000000000000000000
+    Size.Height = 20.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'Add Dictionary New Entry'
+    TabOrder = 4
+  end
+  object CancelButton: TButton
+    Position.X = 208.000000000000000000
+    Position.Y = 392.000000000000000000
+    TabOrder = 5
+    Text = 'Cancel'
+    OnClick = CancelClick
+  end
+  object AcceptButton: TButton
+    Position.X = 345.000000000000000000
+    Position.Y = 392.000000000000000000
+    TabOrder = 6
+    Text = 'Accept'
+    OnClick = FieldRequieredWarning
+  end
+  object FieldRequieredLabel: TLabel
+    Position.X = 369.000000000000000000
+    Position.Y = 208.000000000000000000
+    Text = 'This field is requiered'
+    Visible = False
+    TabOrder = 7
+  end
+end
