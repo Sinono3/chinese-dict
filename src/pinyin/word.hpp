@@ -3,7 +3,7 @@
 #include <vector>
 #include <string_view>
 
-typedef std::vector<Syllable> PinyinWord;
+using PinyinWord = std::vector<Syllable>;
 std::ostream &operator<<(std::ostream &out, const PinyinWord &word);
 
 PinyinWord parseWord(std::string_view text);

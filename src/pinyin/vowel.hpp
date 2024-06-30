@@ -15,7 +15,7 @@ enum Vowel {
 	Ou,
 	An,
 	En,
-	La,
+	Ia,
 	Ie,
 	Iu,
 	In,
@@ -45,7 +45,7 @@ struct VowelStr {
 const VowelStr VOWEL_STR[] = {
 	{A, "a"},		{E, "e"},	  {I, "i"},		{O, "o"},		{U, "u"},
 	{Er, "er"},		{Ai, "ai"},	  {Ei, "ei"},	{Ao, "ao"},		{Ou, "ou"},
-	{An, "an"},		{En, "en"},	  {La, "la"},	{Ie, "ie"},		{Iu, "iu"},
+	{An, "an"},		{En, "en"},	  {Ia, "ia"},	{Ie, "ie"},		{Iu, "iu"},
 	{In, "in"},		{Ua, "ua"},	  {Uo, "uo"},	{Ui, "ui"},		{Un, "un"},
 	{Ue, "ue"},		{Iao, "iao"}, {Ian, "ian"}, {Ing, "ing"},	{Uai, "uai"},
 	{Ang, "ang"},	{Eng, "eng"}, {Ong, "ong"}, {Iang, "iang"}, {Iong, "iong"},
