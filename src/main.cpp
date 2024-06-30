@@ -13,7 +13,7 @@
 #include <sstream>
 #include <cmath>
 
-const std::array<DictionaryEntry, 21> entries{{
+std::vector<DictionaryEntry> entries{{
 	DictionaryEntry("pin1yin1", "拼音", "A writing system for Chinese pronunciation"),
 	DictionaryEntry("yin1yue4", "音樂", "Music"),
 	DictionaryEntry("ni3hao3", "你好", "Hello!"),
@@ -105,6 +105,8 @@ int main() {
 		}
 	}, defPanel);
 
+	entries.push_back(DictionaryEntry("chou4dou4fu3", "臭豆腐", "Stinky tofu"));
+
 	struct SearchBarCallbackCtx {
 		DefinitionPanel* definitionPanel;
 		Fl_Select_Browser* results;
@@ -113,7 +115,7 @@ int main() {
 	auto ctx = new SearchBarCallbackCtx { defPanel, results };
 
 	searchBar->when(FL_WHEN_CHANGED);
-	searchBar->callback([](Fl_Widget *widget, void *b) {
+	auto searchBarCallback = [](Fl_Widget *widget, void *b) {
 		auto input = (Fl_Input *)(widget);
 		auto ctx = (SearchBarCallbackCtx*)b;
 
@@ -127,7 +129,10 @@ int main() {
 			int* data = new int(result.entryIdx);
 			ctx->results->add(entry.characters.c_str(), (void*)data);
 		}
-	}, ctx);
+	};
+	searchBar->callback(searchBarCallback, ctx);
+	// Initialize results screen
+	searchBarCallback(searchBar, ctx);
 
 	window->end();
 	window->show();

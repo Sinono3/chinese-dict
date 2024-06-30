@@ -13,15 +13,15 @@ std::vector<SearchResult> searchInEntries(std::span<const DictionaryEntry> entri
 
 		for (int entryIdx = 0; entryIdx < entries.size(); entryIdx++) {
 			const DictionaryEntry &entry = entries[entryIdx];
-			int correlation = 0;
+			float correlation = 0;
 
 			for (int i = 0; i < entry.pinyin.size(); i++) {
 				for (int j = 0; j < searchPinyin.size(); j++) {
-					if (entry.pinyin[i] == searchPinyin[j]) {
-						correlation++;
-					}
+					correlation += entry.pinyin[i].getCorrelation(searchPinyin[j]);
 				}
 			}
+
+			correlation /= entry.pinyin.size();
 
 			if (correlation > 0) {
 				results.push_back({entryIdx, correlation});
@@ -30,7 +30,7 @@ std::vector<SearchResult> searchInEntries(std::span<const DictionaryEntry> entri
 
 		std::stable_sort(results.begin(), results.end(),
 						 [](SearchResult a, SearchResult b) {
-							 return a.correlation > b.correlation;
+							 return a.correlation < b.correlation;
 						 });
 
 	} else {

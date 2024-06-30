@@ -68,6 +68,9 @@ PinyinWord parseWord(std::string_view text) {
 			tone = Fourth;
 			index += 1;
 			break;
+		default:
+			tone = Neutral;
+			break;
 		}
 
 		if (cons.has_value() && vowel.has_value() && tone.has_value()) {

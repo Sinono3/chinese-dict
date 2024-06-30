@@ -28,6 +28,7 @@ enum Vowel {
 	Ian,
 	Ing,
 	Uai,
+	Uan,
 	Ang,
 	Eng,
 	Ong,
@@ -43,13 +44,12 @@ struct VowelStr {
 
 // WARNING! This must have the same order as the enum
 const VowelStr VOWEL_STR[] = {
-	{A, "a"},		{E, "e"},	  {I, "i"},		{O, "o"},		{U, "u"},
-	{Er, "er"},		{Ai, "ai"},	  {Ei, "ei"},	{Ao, "ao"},		{Ou, "ou"},
-	{An, "an"},		{En, "en"},	  {Ia, "ia"},	{Ie, "ie"},		{Iu, "iu"},
-	{In, "in"},		{Ua, "ua"},	  {Uo, "uo"},	{Ui, "ui"},		{Un, "un"},
-	{Ue, "ue"},		{Iao, "iao"}, {Ian, "ian"}, {Ing, "ing"},	{Uai, "uai"},
-	{Ang, "ang"},	{Eng, "eng"}, {Ong, "ong"}, {Iang, "iang"}, {Iong, "iong"},
-	{Uang, "uang"},
+	{A, "a"},		{E, "e"},		{I, "i"},	  {O, "o"},		{U, "u"},
+	{Er, "er"},		{Ai, "ai"},		{Ei, "ei"},	  {Ao, "ao"},	{Ou, "ou"},
+	{An, "an"},		{En, "en"},		{Ia, "ia"},	  {Ie, "ie"},	{Iu, "iu"},
+	{In, "in"},		{Ua, "ua"},		{Uo, "uo"},	  {Ui, "ui"},	{Un, "un"},
+	{Ue, "ue"},		{Iao, "iao"},	{Ian, "ian"}, {Ing, "ing"}, {Uai, "uai"},
+	{Uan, "uan"},	{Ang, "ang"},	{Eng, "eng"}, {Ong, "ong"}, {Iang, "iang"},
+	{Iong, "iong"}, {Uang, "uang"},
 };
 const int VOWEL_COUNT = std::extent<decltype(VOWEL_STR)>::value;
-

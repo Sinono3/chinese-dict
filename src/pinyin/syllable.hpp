@@ -14,6 +14,17 @@ struct Syllable {
 		return consonant == other.consonant && vowel == other.vowel &&
 			   tone == other.tone;
 	}
+
+	/// The higher the correlation, the closer the syllables are
+	int getCorrelation (const Syllable &other) const {
+		int consonantCorr = !(consonant == other.consonant);
+		int vowelCorr = !(vowel == other.vowel);
+		int toneCorr = !(tone == other.tone);
+		// Neutral correlates with any tone
+		if (tone == Neutral || other.tone == Neutral)
+			toneCorr = 1;
+		return consonantCorr + vowelCorr + toneCorr;
+	}
 };
 
 std::ostream &operator<<(std::ostream &out, const Syllable &syl);

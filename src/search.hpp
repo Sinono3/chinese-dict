@@ -17,7 +17,8 @@ struct DictionaryEntry {
 };
 
 struct SearchResult {
-	int entryIdx, correlation;
+	int entryIdx;
+	float correlation;
 };
 
 std::vector<SearchResult> searchInEntries(std::span<const DictionaryEntry> entries,
