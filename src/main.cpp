@@ -1,53 +1,160 @@
 #include "FL/Enumerations.H"
 #include "pinyin/word.hpp"
 #include "search.hpp"
+#include "csv.hpp"
 #include <FL/Fl.H>
 #include <FL/Fl_Box.H>
 #include <FL/Fl_Button.H>
 #include <FL/Fl_Input.H>
-#include <FL/Fl_Window.H>
 #include <FL/Fl_Select_Browser.H>
+#include <FL/Fl_Window.H>
+#include <cmath>
 #include <format>
 #include <iostream>
-#include <string>
 #include <sstream>
-#include <cmath>
+#include <string>
 
-std::vector<DictionaryEntry> entries{{
-	DictionaryEntry("pin1yin1", "拼音", "A writing system for Chinese pronunciation"),
-	DictionaryEntry("yin1yue4", "音樂", "Music"),
-	DictionaryEntry("ni3hao3", "你好", "Hello!"),
-	DictionaryEntry("ni3hao3ma0", "你好嗎", "How are you?"),
-	DictionaryEntry("xi3huan1", "喜歡", "To like"),
-	DictionaryEntry("lai2", "來", "To come"),
-	DictionaryEntry("qu4", "去", "To go"),
-	DictionaryEntry("chi1", "吃", "To eat"),
-	DictionaryEntry("dou4fu3", "豆腐", "Tofu"),
-	DictionaryEntry("wo3", "我", "I"),
-	DictionaryEntry("ni3", "你", "You (male)"),
-	DictionaryEntry("ta1", "他", "He"),
-	DictionaryEntry("ni3", "妳", "You (female)"),
-	DictionaryEntry("ta1", "她", "She"),
-	DictionaryEntry("nin2", "您", "You (courteous)"),
-	DictionaryEntry("shu1", "書", "Book"),
-	DictionaryEntry("kan4shu1", "看書", "Read"),
-	DictionaryEntry("dian4ying3", "電影", "Film/Movie"),
-	DictionaryEntry("wang3qiu2", "網球", "Tennis"),
-	DictionaryEntry("bang4qiu2", "棒球", "Baseball"),
-	DictionaryEntry("lan2qiu2", "籃球", "Basketball")
-}};
+std::vector<DictionaryEntry> entries{{}};
+
+struct DefinitionPanel {
+	Fl_Group *definitionPanel;
+	Fl_Box *headword;
+	Fl_Box *pronunciation;
+	Fl_Box *definition;
+};
+
+struct SearchBarCallbackCtx {
+	DefinitionPanel *definitionPanel;
+	Fl_Select_Browser *results;
+};
+
+void searchBarCallback(Fl_Widget *widget, void *b) {
+	auto input = (Fl_Input *)(widget);
+	auto ctx = (SearchBarCallbackCtx *)b;
+
+	std::string_view query = input->value();
+	std::vector<SearchResult> results = searchInEntries(entries, query);
+
+	ctx->results->clear();
+	for (auto result : results) {
+		auto &entry = entries[result.entryIdx];
+		int *data = new int(result.entryIdx);
+		ctx->results->add(entry.characters.c_str(), (void *)data);
+	}
+}
+
+struct AddButtonCtx {
+	Fl_Input *searchBar;
+	SearchBarCallbackCtx *ctx;
+};
+
+void onAdd(Fl_Widget *addButton, void *data) {
+	Fl_Window *newWindow = new Fl_Window(500, 500, "Add Dictionary Entry");
+
+	newWindow->begin();
+
+	Fl_Box *titlelabel = new Fl_Box(0, 50, 500, 30, "Add New Dictionary Entry");
+	titlelabel->labelsize(20);
+	titlelabel->labelfont(FL_BOLD);
+
+	Fl_Input *insertChar = new Fl_Input(200, 120, 200, 80, "Character: ");
+	insertChar->box(FL_UP_BOX);
+	insertChar->labelsize(18);
+	insertChar->labelfont(FL_BOLD + FL_ITALIC);
+	insertChar->labeltype(FL_SHADOW_LABEL);
+	insertChar->textsize(36);
+
+	Fl_Input *insertPinyin = new Fl_Input(200, 220, 200, 80, "Pinyin: ");
+	insertPinyin->box(FL_UP_BOX);
+	insertPinyin->labelsize(18);
+	insertPinyin->labelfont(FL_BOLD + FL_ITALIC);
+	insertPinyin->labeltype(FL_SHADOW_LABEL);
+	insertPinyin->textsize(36);
+
+	Fl_Input *insertDef = new Fl_Input(200, 320, 200, 80, "Definition: ");
+	insertDef->box(FL_UP_BOX);
+	insertDef->labelsize(18);
+	insertDef->labelfont(FL_BOLD + FL_ITALIC);
+	insertDef->labeltype(FL_SHADOW_LABEL);
+	insertDef->textsize(36);
+
+	Fl_Box *errorChar = new Fl_Box(100, 200, 500, 20);
+	errorChar->labelcolor(FL_RED);
+	errorChar->labelsize(10);
+	Fl_Box *errorPinyin = new Fl_Box(100, 300, 500, 20);
+	errorPinyin->labelcolor(FL_RED);
+	errorPinyin->labelsize(10);
+	Fl_Box *errorDef = new Fl_Box(100, 400, 500, 20);
+	errorDef->labelcolor(FL_RED);
+	errorDef->labelsize(10);
+
+	// Creating the 'accept' button
+	Fl_Button *acceptButton = new Fl_Button(250, 450, 80, 40, "Accept");
+	acceptButton->color(0x00ff0000);
+
+	struct DoAcceptCallbackArgs {
+		Fl_Window *insertWindow;
+		Fl_Input *charInput, *pinyinInput, *defInput;
+		Fl_Box *errorChar, *errorPinyin, *errorDef;
+		AddButtonCtx *ctx;
+	};
+
+	DoAcceptCallbackArgs *args = new DoAcceptCallbackArgs{
+		newWindow, insertChar,	insertPinyin, insertDef,
+		errorChar, errorPinyin, errorDef, (AddButtonCtx*)data};
+	acceptButton->callback(
+		[](Fl_Widget *widget, void *data) {
+			DoAcceptCallbackArgs *args = (DoAcceptCallbackArgs *)data;
+
+			args->insertWindow->begin();
+
+			if (args->charInput->size() == 0 ||
+				args->pinyinInput->size() == 0 || args->defInput->size() == 0) {
+				args->errorChar->label((args->charInput->size() == 0) ? "This field is required." : "");
+				args->errorPinyin->label((args->pinyinInput->size() == 0) ? "This field is required." : "");
+				args->errorDef->label((args->defInput->size() == 0) ? "This field is required." : "");
+				args->insertWindow->redraw();
+			} else {
+				std::string headword = args->charInput->value();
+				std::string pinyin = args->pinyinInput->value();
+				std::string definition = args->defInput->value();
+				entries.push_back(DictionaryEntry(pinyin, headword, definition));
+				// update results with new entry
+				searchBarCallback(args->ctx->searchBar, args->ctx->ctx);
+				args->insertWindow->hide();
+			}
+
+			args->insertWindow->end();
+			
+		},
+		(void *)args);
+
+	// Creating the 'cancel' button
+	Fl_Button *cancelButton = new Fl_Button(150, 450, 80, 40, "Cancel");
+	cancelButton->color(FL_RED);
+
+	cancelButton->callback(
+		[](Fl_Widget *widget, void *data) {
+			DoAcceptCallbackArgs *args = (DoAcceptCallbackArgs *)data;
+			args->insertWindow->hide();
+		},
+		args);
+
+	newWindow->end();
+	newWindow->show();
+}
 
 int main() {
+	entries = loadFromCsv("dict.csv");
+
+	// If empty, load test entries
+	if (entries.empty()) {
+		std::cout << "No csv file found, loading sample dictionary..." << std::endl;
+		entries = loadFromCsv("sampleDict.csv");
+	}
+
 	Fl_Window *window = new Fl_Window(600, 480, "Chinese Dictionary");
 	window->begin();
-
-	// Searchbar panel
-	Fl_Input *searchBar = new Fl_Input(200, 0, 400, 80);
-	searchBar->box(FL_UP_BOX);
-	searchBar->labelsize(18);
-	searchBar->labelfont(FL_BOLD + FL_ITALIC);
-	searchBar->labeltype(FL_SHADOW_LABEL);
-	searchBar->textsize(36);
 
 	// Definition
 	Fl_Group *definitionPanel = new Fl_Group(200, 80, 400, 400);
@@ -70,71 +177,59 @@ int main() {
 
 	definitionPanel->end();
 
-	struct DefinitionPanel {
-		Fl_Group* definitionPanel;
-		Fl_Box* headword;
-		Fl_Box* pronunciation;
-		Fl_Box* definition;
-	};
-
-	DefinitionPanel *defPanel = new DefinitionPanel { definitionPanel, headword, pronunciation, definition };
+	DefinitionPanel *defPanel = new DefinitionPanel{definitionPanel, headword,
+													pronunciation, definition};
 
 	Fl_Select_Browser *results = new Fl_Select_Browser(0, 0, 200, 480);
-	results->callback([](Fl_Widget *widget, void *b) {
-		auto results = (Fl_Select_Browser *)(widget);
-		auto defPanel = (DefinitionPanel*)b;
+	results->callback(
+		[](Fl_Widget *widget, void *b) {
+			auto results = (Fl_Select_Browser *)(widget);
+			auto defPanel = (DefinitionPanel *)b;
 
-		int selected = results->value();
-		// Selection defaults to 0 if no line is selectedj
-		if (selected != 0) {
-			int entryIdx = *((int*)results->data(selected));
-			const DictionaryEntry& entry = entries[entryIdx];
+			int selected = results->value();
+			// Selection defaults to 0 if no line is selectedj
+			if (selected != 0) {
+				int entryIdx = *((int *)results->data(selected));
+				const DictionaryEntry &entry = entries[entryIdx];
 
-			// Show definition
-			std::stringstream pinyinStream;
-			pinyinStream << entry.pinyin;
-			auto pinyin = new std::string(pinyinStream.str());
+				// Show definition
+				std::stringstream pinyinStream;
+				pinyinStream << entry.pinyin;
+				auto pinyin = new std::string(pinyinStream.str());
 
-			defPanel->headword->label(entry.characters.c_str());
-			defPanel->pronunciation->label(pinyin->c_str());
-			defPanel->definition->label(entry.definition.c_str());
-		} else {
-			defPanel->headword->label("");
-			defPanel->pronunciation->label("");
-			defPanel->definition->label("");
-		}
-	}, defPanel);
+				defPanel->headword->label(entry.characters.c_str());
+				defPanel->pronunciation->label(pinyin->c_str());
+				defPanel->definition->label(entry.definition.c_str());
+			} else {
+				defPanel->headword->label("");
+				defPanel->pronunciation->label("");
+				defPanel->definition->label("");
+			}
+		},
+		defPanel);
 
-	entries.push_back(DictionaryEntry("chou4dou4fu3", "臭豆腐", "Stinky tofu"));
-
-	struct SearchBarCallbackCtx {
-		DefinitionPanel* definitionPanel;
-		Fl_Select_Browser* results;
-	};
-
-	auto ctx = new SearchBarCallbackCtx { defPanel, results };
-
+	// Searchbar panel
+	Fl_Input *searchBar = new Fl_Input(200, 0, 320, 80);
+	searchBar->box(FL_UP_BOX);
+	searchBar->labelsize(18);
+	searchBar->labelfont(FL_BOLD + FL_ITALIC);
+	searchBar->labeltype(FL_SHADOW_LABEL);
+	searchBar->textsize(36);
 	searchBar->when(FL_WHEN_CHANGED);
-	auto searchBarCallback = [](Fl_Widget *widget, void *b) {
-		auto input = (Fl_Input *)(widget);
-		auto ctx = (SearchBarCallbackCtx*)b;
 
-		std::string_view query = input->value();
-		std::vector<SearchResult> results = searchInEntries(entries, query);
-
-		ctx->results->clear();
-
-		for (auto result : results) { 
-			auto& entry = entries[result.entryIdx];
-			int* data = new int(result.entryIdx);
-			ctx->results->add(entry.characters.c_str(), (void*)data);
-		}
-	};
+	auto ctx = new SearchBarCallbackCtx{defPanel, results};
 	searchBar->callback(searchBarCallback, ctx);
 	// Initialize results screen
 	searchBarCallback(searchBar, ctx);
 
+	Fl_Button* addButton = new Fl_Button(520, 0, 80, 80, "Add");
+	addButton->callback(onAdd, new AddButtonCtx { searchBar, ctx });
+
 	window->end();
 	window->show();
-	return Fl::run();
+
+	if (Fl::run() == 0) {
+		std::cout << "Saving dictionary..." << std::endl;
+		saveToCsv("dict.csv", entries);
+	}
 }
