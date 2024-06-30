@@ -3,6 +3,7 @@
 #include <map>
 #include <span>
 #include <vector>
+#include <algorithm>
 
 std::vector<SearchResult> searchInEntries(std::span<const DictionaryEntry> entries,
 								 std::string_view query) {
