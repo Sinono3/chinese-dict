@@ -60,9 +60,12 @@ void updateResults(AppContext* ctx) {
 
 	ctx->results = results;
 	ctx->resultList->clear();
+
 	for (auto result : results) {
 		auto &entry = entries[result.entryIdx];
-		ctx->resultList->add(entry.characters.c_str());
+		std::stringstream display;
+		display << entry.characters << " " << PrettyPinyinWord{entry.pinyin};
+		ctx->resultList->add(display.str().c_str());
 	}
 }
 
