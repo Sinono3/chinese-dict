@@ -12,7 +12,7 @@ std::vector<DictionaryEntry> loadFromCsv(const char *path) {
 	std::string line;
 	std::string fields[3];
 
-	while(std::getline(file, line)) {
+	while (std::getline(file, line)) {
 		int curField = 0;
 
 		for (int i = 0; i < line.size(); i++) {
@@ -32,7 +32,7 @@ std::vector<DictionaryEntry> loadFromCsv(const char *path) {
 		for (int i = 0; i < 3; i++) {
 			fields[i].clear();
 		}
-    }
+	}
 
 	return entries;
 }
@@ -41,6 +41,7 @@ void saveToCsv(const char *path, std::span<DictionaryEntry> entries) {
 	std::ofstream file(path);
 
 	for (int i = 0; i < entries.size(); i++) {
-		file << entries[i].pinyin << SEPARATOR << entries[i].characters << SEPARATOR << entries[i].definition << std::endl;
+		file << entries[i].pinyin << SEPARATOR << entries[i].characters
+			 << SEPARATOR << entries[i].definition << std::endl;
 	}
 }

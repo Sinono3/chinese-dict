@@ -1,4 +1,4 @@
-SRC = src/main.cpp src/pinyin/syllable.cpp src/pinyin/word.cpp src/search.cpp
+SRC = src/main.cpp src/pinyin/syllable.cpp src/pinyin/word.cpp src/search.cpp src/csv.cpp
 BUILDDIR = build
 EXE = build/chinese-dict
 
