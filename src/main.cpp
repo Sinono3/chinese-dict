@@ -26,14 +26,14 @@ struct AppContext {
 	Fl_Box *pronunciation;
 	Fl_Box *definition;
 	Fl_Button *deleteEntryBtn;
+	Fl_Button *editEntryBtn;
 	std::vector<SearchResult> results;
 	int selectedEntry = -1;
 };
 
 void updateDefinitionPanel(AppContext* ctx) {
 	if (ctx->selectedEntry != -1) {
-		auto result = ctx->results[ctx->selectedEntry];
-		const DictionaryEntry &entry = entries[result.entryIdx];
+		const DictionaryEntry &entry = entries[ctx->selectedEntry];
 
 		// Show definition
 		std::stringstream pinyinStream;
@@ -44,11 +44,13 @@ void updateDefinitionPanel(AppContext* ctx) {
 		ctx->pronunciation->label(pinyin->c_str());
 		ctx->definition->label(entry.definition.c_str());
 		ctx->deleteEntryBtn->set_visible();
+		ctx->editEntryBtn->set_visible();
 	} else {
 		ctx->headword->label("");
 		ctx->pronunciation->label("");
 		ctx->definition->label("");
 		ctx->deleteEntryBtn->clear_visible();
+		ctx->editEntryBtn->clear_visible();
 	}
 }
 
@@ -73,12 +75,23 @@ void deleteCurrentEntry(AppContext *ctx) {
 	} 
 }
 
-void openInsertWindow(AppContext* ctx) {
-	Fl_Window *newWindow = new Fl_Window(500, 500, "Add Dictionary Entry");
+struct AddEditEntryCtx {
+	Fl_Window *insertWindow;
+	Fl_Input *charInput, *pinyinInput, *defInput;
+	Fl_Box *errorChar, *errorPinyin, *errorDef;
+	AppContext *app;
+};
+
+template <void F(AddEditEntryCtx *)>
+void openAddEditWindow(AppContext *ctx, std::string_view title,
+					   // Initial values
+					   std::string_view headword, std::string_view pinyin,
+					   std::string_view def) {
+	Fl_Window *newWindow = new Fl_Window(500, 500, title.begin());
 
 	newWindow->begin();
 
-	Fl_Box *titlelabel = new Fl_Box(0, 50, 500, 30, "Add New Dictionary Entry");
+	Fl_Box *titlelabel = new Fl_Box(0, 50, 500, 30, title.begin());
 	titlelabel->labelsize(20);
 	titlelabel->labelfont(FL_BOLD);
 
@@ -88,6 +101,7 @@ void openInsertWindow(AppContext* ctx) {
 	insertChar->labelfont(FL_BOLD + FL_ITALIC);
 	insertChar->labeltype(FL_SHADOW_LABEL);
 	insertChar->textsize(36);
+	insertChar->value(headword.begin());
 
 	Fl_Input *insertPinyin = new Fl_Input(200, 220, 200, 80, "Pinyin: ");
 	insertPinyin->box(FL_UP_BOX);
@@ -95,6 +109,7 @@ void openInsertWindow(AppContext* ctx) {
 	insertPinyin->labelfont(FL_BOLD + FL_ITALIC);
 	insertPinyin->labeltype(FL_SHADOW_LABEL);
 	insertPinyin->textsize(36);
+	insertPinyin->value(pinyin.begin());
 
 	Fl_Input *insertDef = new Fl_Input(200, 320, 200, 80, "Definition: ");
 	insertDef->box(FL_UP_BOX);
@@ -102,6 +117,7 @@ void openInsertWindow(AppContext* ctx) {
 	insertDef->labelfont(FL_BOLD + FL_ITALIC);
 	insertDef->labeltype(FL_SHADOW_LABEL);
 	insertDef->textsize(36);
+	insertDef->value(def.begin());
 
 	Fl_Box *errorChar = new Fl_Box(100, 200, 500, 20);
 	errorChar->labelcolor(FL_RED);
@@ -117,38 +133,26 @@ void openInsertWindow(AppContext* ctx) {
 	Fl_Button *acceptButton = new Fl_Button(250, 450, 80, 40, "Accept");
 	acceptButton->color(0x00ff0000);
 
-	struct InsertEntryCtx {
-		Fl_Window *insertWindow;
-		Fl_Input *charInput, *pinyinInput, *defInput;
-		Fl_Box *errorChar, *errorPinyin, *errorDef;
-		AppContext *app;
-	};
-
-	InsertEntryCtx *args = new InsertEntryCtx{
+	AddEditEntryCtx *args = new AddEditEntryCtx{
 		newWindow, insertChar,	insertPinyin, insertDef,
 		errorChar, errorPinyin, errorDef, ctx};
 	acceptButton->callback(
 		[](Fl_Widget *widget, void *data) {
-			InsertEntryCtx *args = (InsertEntryCtx *)data;
+			AddEditEntryCtx *args = (AddEditEntryCtx *)data;
 
 			args->insertWindow->begin();
 
-			if (args->charInput->size() == 0 ||
-				args->pinyinInput->size() == 0 || args->defInput->size() == 0) {
+			if (args->charInput->size() > 0 &&
+				args->pinyinInput->size() > 0 && args->defInput->size() > 0) {
+				// The fields were filled
+				(F)(args);
+				args->insertWindow->hide();
+			} else {
+				// The fields were not filled
 				args->errorChar->label((args->charInput->size() == 0) ? "This field is required." : "");
 				args->errorPinyin->label((args->pinyinInput->size() == 0) ? "This field is required." : "");
 				args->errorDef->label((args->defInput->size() == 0) ? "This field is required." : "");
 				args->insertWindow->redraw();
-			} else {
-				std::string headword = args->charInput->value();
-				std::string pinyin = args->pinyinInput->value();
-				std::string definition = args->defInput->value();
-				entries.push_back(DictionaryEntry(pinyin, headword, definition));
-
-				// update results with new entry
-				updateResults(args->app);
-				// hide window
-				args->insertWindow->hide();
 			}
 
 			args->insertWindow->end();
@@ -162,13 +166,47 @@ void openInsertWindow(AppContext* ctx) {
 
 	cancelButton->callback(
 		[](Fl_Widget *widget, void *data) {
-			InsertEntryCtx *args = (InsertEntryCtx *)data;
+			AddEditEntryCtx *args = (AddEditEntryCtx *)data;
 			args->insertWindow->hide();
 		},
 		args);
 
 	newWindow->end();
 	newWindow->show();
+}
+
+void onAdd(AddEditEntryCtx *args) {
+	std::string headword = args->charInput->value();
+	std::string pinyin = args->pinyinInput->value();
+	std::string definition = args->defInput->value();
+	entries.push_back(DictionaryEntry(pinyin, headword, definition));
+
+	// update results with new entry
+	updateResults(args->app);
+}
+
+void openAddWindow(AppContext* ctx) {
+	openAddEditWindow<onAdd>(ctx, "Add New Dictionary Entry", "", "", "");
+}
+
+void onEdit(AddEditEntryCtx *args) {
+	std::string headword = args->charInput->value();
+	std::string pinyin = args->pinyinInput->value();
+	std::string definition = args->defInput->value();
+
+	entries[args->app->selectedEntry] = DictionaryEntry(pinyin, headword, definition);
+	// update results with new entry
+	updateResults(args->app);
+	updateDefinitionPanel(args->app);
+}
+
+void openEditWindow(AppContext* ctx) {
+	std::stringstream pinyin;
+	pinyin << entries[ctx->selectedEntry].pinyin;
+
+	openAddEditWindow<onEdit>(
+		ctx, "Edit Dictionary Entry", entries[ctx->selectedEntry].characters,
+		pinyin.str(), entries[ctx->selectedEntry].definition);
 }
 
 int main() {
@@ -212,21 +250,23 @@ int main() {
 	searchBar->textsize(36);
 	searchBar->when(FL_WHEN_CHANGED);
 
-	Fl_Button* deleteEntryBtn = new Fl_Button(520, 400, 80, 80, "Delete");
-	deleteEntryBtn->clear_visible();
+	Fl_Button* deleteBtn = new Fl_Button(520, 320, 80, 80, "Delete");
+	Fl_Button* editBtn = new Fl_Button(520, 400, 80, 80, "Edit");
+	deleteBtn->clear_visible();
+	editBtn->clear_visible();
 	Fl_Button* addButton = new Fl_Button(520, 0, 80, 80, "Add");
 
-	auto ctx = new AppContext { searchBar, results, definitionPanel, headword, pronunciation, definition, deleteEntryBtn };
+	auto ctx = new AppContext { searchBar, results, definitionPanel, headword, pronunciation, definition, deleteBtn, editBtn };
 
 	results->callback(
 		[](Fl_Widget *widget, void *b) {
 			auto results = (Fl_Select_Browser *)(widget);
 			auto ctx = (AppContext *)b;
 
-			int selected = results->value();
+			int selectedSearchResult = results->value();
 			// Selection defaults to 0 if no line is selected
-			if (selected != 0) {
-				ctx->selectedEntry = (selected - 1);
+			if (selectedSearchResult != 0) {
+				ctx->selectedEntry = ctx->results[(selectedSearchResult - 1)].entryIdx;
 			} else {
 				ctx->selectedEntry = -1;
 			}
@@ -234,8 +274,9 @@ int main() {
 		},
 		ctx);
 	searchBar->callback([] (auto widget, auto ctx) { updateResults((AppContext*)ctx); }, ctx);
-	addButton->callback([] (auto widget, auto ctx) { openInsertWindow((AppContext*)ctx); }, ctx);
-	deleteEntryBtn->callback([] (auto widget, auto ctx) { deleteCurrentEntry((AppContext*)ctx); }, ctx);
+	addButton->callback([] (auto widget, auto ctx) { openAddWindow((AppContext*)ctx); }, ctx);
+	editBtn->callback([] (auto widget, auto ctx) { openEditWindow((AppContext*)ctx); }, ctx);
+	deleteBtn->callback([] (auto widget, auto ctx) { deleteCurrentEntry((AppContext*)ctx); }, ctx);
 
 	// Initialize result list
 	updateResults(ctx);
