@@ -16,23 +16,18 @@
 
 std::vector<DictionaryEntry> entries{{}};
 
-struct DefinitionPanel {
+struct AppContext {
+	Fl_Input *searchBar;
+	Fl_Select_Browser *results;
+	// Definitions
 	Fl_Group *definitionPanel;
 	Fl_Box *headword;
 	Fl_Box *pronunciation;
 	Fl_Box *definition;
 };
 
-struct SearchBarCallbackCtx {
-	DefinitionPanel *definitionPanel;
-	Fl_Select_Browser *results;
-};
-
-void searchBarCallback(Fl_Widget *widget, void *b) {
-	auto input = (Fl_Input *)(widget);
-	auto ctx = (SearchBarCallbackCtx *)b;
-
-	std::string_view query = input->value();
+void updateResults(AppContext* ctx) {
+	std::string_view query = ctx->searchBar->value();
 	std::vector<SearchResult> results = searchInEntries(entries, query);
 
 	ctx->results->clear();
@@ -43,12 +38,7 @@ void searchBarCallback(Fl_Widget *widget, void *b) {
 	}
 }
 
-struct AddButtonCtx {
-	Fl_Input *searchBar;
-	SearchBarCallbackCtx *ctx;
-};
-
-void onAdd(Fl_Widget *addButton, void *data) {
+void openInsertWindow(AppContext* ctx) {
 	Fl_Window *newWindow = new Fl_Window(500, 500, "Add Dictionary Entry");
 
 	newWindow->begin();
@@ -92,19 +82,19 @@ void onAdd(Fl_Widget *addButton, void *data) {
 	Fl_Button *acceptButton = new Fl_Button(250, 450, 80, 40, "Accept");
 	acceptButton->color(0x00ff0000);
 
-	struct DoAcceptCallbackArgs {
+	struct InsertEntryCtx {
 		Fl_Window *insertWindow;
 		Fl_Input *charInput, *pinyinInput, *defInput;
 		Fl_Box *errorChar, *errorPinyin, *errorDef;
-		AddButtonCtx *ctx;
+		AppContext *app;
 	};
 
-	DoAcceptCallbackArgs *args = new DoAcceptCallbackArgs{
+	InsertEntryCtx *args = new InsertEntryCtx{
 		newWindow, insertChar,	insertPinyin, insertDef,
-		errorChar, errorPinyin, errorDef, (AddButtonCtx*)data};
+		errorChar, errorPinyin, errorDef, ctx};
 	acceptButton->callback(
 		[](Fl_Widget *widget, void *data) {
-			DoAcceptCallbackArgs *args = (DoAcceptCallbackArgs *)data;
+			InsertEntryCtx *args = (InsertEntryCtx *)data;
 
 			args->insertWindow->begin();
 
@@ -119,8 +109,10 @@ void onAdd(Fl_Widget *addButton, void *data) {
 				std::string pinyin = args->pinyinInput->value();
 				std::string definition = args->defInput->value();
 				entries.push_back(DictionaryEntry(pinyin, headword, definition));
+
 				// update results with new entry
-				searchBarCallback(args->ctx->searchBar, args->ctx->ctx);
+				updateResults(args->app);
+				// hide window
 				args->insertWindow->hide();
 			}
 
@@ -135,7 +127,7 @@ void onAdd(Fl_Widget *addButton, void *data) {
 
 	cancelButton->callback(
 		[](Fl_Widget *widget, void *data) {
-			DoAcceptCallbackArgs *args = (DoAcceptCallbackArgs *)data;
+			InsertEntryCtx *args = (InsertEntryCtx *)data;
 			args->insertWindow->hide();
 		},
 		args);
@@ -177,17 +169,23 @@ int main() {
 
 	definitionPanel->end();
 
-	DefinitionPanel *defPanel = new DefinitionPanel{definitionPanel, headword,
-													pronunciation, definition};
-
 	Fl_Select_Browser *results = new Fl_Select_Browser(0, 0, 200, 480);
+	Fl_Input *searchBar = new Fl_Input(200, 0, 320, 80);
+	searchBar->labelsize(18);
+	searchBar->labelfont(FL_BOLD + FL_ITALIC);
+	searchBar->labeltype(FL_SHADOW_LABEL);
+	searchBar->textsize(36);
+	searchBar->when(FL_WHEN_CHANGED);
+
+	auto ctx = new AppContext { searchBar, results, definitionPanel, headword, pronunciation, definition };
+
 	results->callback(
 		[](Fl_Widget *widget, void *b) {
 			auto results = (Fl_Select_Browser *)(widget);
-			auto defPanel = (DefinitionPanel *)b;
+			auto ctx = (AppContext *)b;
 
 			int selected = results->value();
-			// Selection defaults to 0 if no line is selectedj
+			// Selection defaults to 0 if no line is selected
 			if (selected != 0) {
 				int entryIdx = *((int *)results->data(selected));
 				const DictionaryEntry &entry = entries[entryIdx];
@@ -197,33 +195,23 @@ int main() {
 				pinyinStream << entry.pinyin;
 				auto pinyin = new std::string(pinyinStream.str());
 
-				defPanel->headword->label(entry.characters.c_str());
-				defPanel->pronunciation->label(pinyin->c_str());
-				defPanel->definition->label(entry.definition.c_str());
+				ctx->headword->label(entry.characters.c_str());
+				ctx->pronunciation->label(pinyin->c_str());
+				ctx->definition->label(entry.definition.c_str());
 			} else {
-				defPanel->headword->label("");
-				defPanel->pronunciation->label("");
-				defPanel->definition->label("");
+				ctx->headword->label("");
+				ctx->pronunciation->label("");
+				ctx->definition->label("");
 			}
 		},
-		defPanel);
-
-	// Searchbar panel
-	Fl_Input *searchBar = new Fl_Input(200, 0, 320, 80);
-	searchBar->box(FL_UP_BOX);
-	searchBar->labelsize(18);
-	searchBar->labelfont(FL_BOLD + FL_ITALIC);
-	searchBar->labeltype(FL_SHADOW_LABEL);
-	searchBar->textsize(36);
-	searchBar->when(FL_WHEN_CHANGED);
-
-	auto ctx = new SearchBarCallbackCtx{defPanel, results};
-	searchBar->callback(searchBarCallback, ctx);
-	// Initialize results screen
-	searchBarCallback(searchBar, ctx);
+		ctx);
+	searchBar->callback([] (auto widget, auto ctx) { updateResults((AppContext*)ctx); }, ctx);
 
 	Fl_Button* addButton = new Fl_Button(520, 0, 80, 80, "Add");
-	addButton->callback(onAdd, new AddButtonCtx { searchBar, ctx });
+	addButton->callback([] (auto widget, auto ctx) { openInsertWindow((AppContext*)ctx); }, ctx);
+
+	// Initialize result list
+	updateResults(ctx);
 
 	window->end();
 	window->show();
