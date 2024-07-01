@@ -49,27 +49,27 @@ PinyinWord parseWord(std::string_view text) {
 
 		switch (text[index]) {
 		case '0':
-			tone = Neutral;
+			tone = Tone::Neutral;
 			index += 1;
 			break;
 		case '1':
-			tone = First;
+			tone = Tone::First;
 			index += 1;
 			break;
 		case '2':
-			tone = Second;
+			tone = Tone::Second;
 			index += 1;
 			break;
 		case '3':
-			tone = Third;
+			tone = Tone::Third;
 			index += 1;
 			break;
 		case '4':
-			tone = Fourth;
+			tone = Tone::Fourth;
 			index += 1;
 			break;
 		default:
-			tone = Neutral;
+			tone = Tone::Neutral;
 			break;
 		}
 

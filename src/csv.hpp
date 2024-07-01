@@ -1,3 +1,4 @@
+#pragma once
 #include "DictionaryEntry.hpp"
 #include <span>
 std::vector<DictionaryEntry> loadFromCsv(const char *path);

@@ -2,6 +2,7 @@
 #include "pinyin/word.hpp"
 #include "search.hpp"
 #include "csv.hpp"
+#include "pinyin/pretty.hpp"
 #include <FL/Fl.H>
 #include <FL/Fl_Box.H>
 #include <FL/Fl_Button.H>
@@ -192,7 +193,7 @@ int main() {
 
 				// Show definition
 				std::stringstream pinyinStream;
-				pinyinStream << entry.pinyin;
+				pinyinStream << (PrettyPinyinWord { entry.pinyin });
 				auto pinyin = new std::string(pinyinStream.str());
 
 				ctx->headword->label(entry.characters.c_str());

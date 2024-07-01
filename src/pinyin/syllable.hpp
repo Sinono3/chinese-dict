@@ -21,7 +21,7 @@ struct Syllable {
 		int vowelCorr = !(vowel == other.vowel);
 		int toneCorr = !(tone == other.tone);
 		// Neutral correlates with any tone
-		if (tone == Neutral || other.tone == Neutral)
+		if (tone == Tone::Neutral || other.tone == Tone::Neutral)
 			toneCorr = 1;
 		return consonantCorr + vowelCorr + toneCorr;
 	}
