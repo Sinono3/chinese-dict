@@ -19,24 +19,58 @@ std::vector<DictionaryEntry> entries{{}};
 
 struct AppContext {
 	Fl_Input *searchBar;
-	Fl_Select_Browser *results;
+	Fl_Select_Browser *resultList;
 	// Definitions
 	Fl_Group *definitionPanel;
 	Fl_Box *headword;
 	Fl_Box *pronunciation;
 	Fl_Box *definition;
+	Fl_Button *deleteEntryBtn;
+	std::vector<SearchResult> results;
+	int selectedEntry = -1;
 };
+
+void updateDefinitionPanel(AppContext* ctx) {
+	if (ctx->selectedEntry != -1) {
+		auto result = ctx->results[ctx->selectedEntry];
+		const DictionaryEntry &entry = entries[result.entryIdx];
+
+		// Show definition
+		std::stringstream pinyinStream;
+		pinyinStream << (PrettyPinyinWord { entry.pinyin });
+		auto pinyin = new std::string(pinyinStream.str());
+
+		ctx->headword->label(entry.characters.c_str());
+		ctx->pronunciation->label(pinyin->c_str());
+		ctx->definition->label(entry.definition.c_str());
+		ctx->deleteEntryBtn->set_visible();
+	} else {
+		ctx->headword->label("");
+		ctx->pronunciation->label("");
+		ctx->definition->label("");
+		ctx->deleteEntryBtn->clear_visible();
+	}
+}
 
 void updateResults(AppContext* ctx) {
 	std::string_view query = ctx->searchBar->value();
 	std::vector<SearchResult> results = searchInEntries(entries, query);
 
-	ctx->results->clear();
+	ctx->results = results;
+	ctx->resultList->clear();
 	for (auto result : results) {
 		auto &entry = entries[result.entryIdx];
-		int *data = new int(result.entryIdx);
-		ctx->results->add(entry.characters.c_str(), (void *)data);
+		ctx->resultList->add(entry.characters.c_str());
 	}
+}
+
+void deleteCurrentEntry(AppContext *ctx) {
+	if (ctx->selectedEntry != -1) {
+		entries.erase(entries.begin() + ctx->selectedEntry);
+		ctx->selectedEntry = -1;
+		updateResults(ctx);
+		updateDefinitionPanel(ctx);
+	} 
 }
 
 void openInsertWindow(AppContext* ctx) {
@@ -178,7 +212,11 @@ int main() {
 	searchBar->textsize(36);
 	searchBar->when(FL_WHEN_CHANGED);
 
-	auto ctx = new AppContext { searchBar, results, definitionPanel, headword, pronunciation, definition };
+	Fl_Button* deleteEntryBtn = new Fl_Button(520, 400, 80, 80, "Delete");
+	deleteEntryBtn->clear_visible();
+	Fl_Button* addButton = new Fl_Button(520, 0, 80, 80, "Add");
+
+	auto ctx = new AppContext { searchBar, results, definitionPanel, headword, pronunciation, definition, deleteEntryBtn };
 
 	results->callback(
 		[](Fl_Widget *widget, void *b) {
@@ -188,28 +226,16 @@ int main() {
 			int selected = results->value();
 			// Selection defaults to 0 if no line is selected
 			if (selected != 0) {
-				int entryIdx = *((int *)results->data(selected));
-				const DictionaryEntry &entry = entries[entryIdx];
-
-				// Show definition
-				std::stringstream pinyinStream;
-				pinyinStream << (PrettyPinyinWord { entry.pinyin });
-				auto pinyin = new std::string(pinyinStream.str());
-
-				ctx->headword->label(entry.characters.c_str());
-				ctx->pronunciation->label(pinyin->c_str());
-				ctx->definition->label(entry.definition.c_str());
+				ctx->selectedEntry = (selected - 1);
 			} else {
-				ctx->headword->label("");
-				ctx->pronunciation->label("");
-				ctx->definition->label("");
+				ctx->selectedEntry = -1;
 			}
+			updateDefinitionPanel(ctx);
 		},
 		ctx);
 	searchBar->callback([] (auto widget, auto ctx) { updateResults((AppContext*)ctx); }, ctx);
-
-	Fl_Button* addButton = new Fl_Button(520, 0, 80, 80, "Add");
 	addButton->callback([] (auto widget, auto ctx) { openInsertWindow((AppContext*)ctx); }, ctx);
+	deleteEntryBtn->callback([] (auto widget, auto ctx) { deleteCurrentEntry((AppContext*)ctx); }, ctx);
 
 	// Initialize result list
 	updateResults(ctx);
