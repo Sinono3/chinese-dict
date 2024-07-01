@@ -73,8 +73,8 @@ PinyinWord parseWord(std::string_view text) {
 			break;
 		}
 
-		if (cons.has_value() && vowel.has_value() && tone.has_value()) {
-			Syllable syl = {cons.value(), vowel.value(), tone.value()};
+		if (vowel.has_value() && tone.has_value()) {
+			Syllable syl = {cons.has_value() ? cons.value() : NoConsonant, vowel.value(), tone.value()};
 			vec.push_back(syl);
 		} else {
 			break;
