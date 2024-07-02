@@ -31,7 +31,7 @@ std::vector<SearchResult> searchInEntries(std::span<const DictionaryEntry> entri
 
 		std::stable_sort(results.begin(), results.end(),
 						 [](SearchResult a, SearchResult b) {
-							 return a.correlation < b.correlation;
+							 return a.correlation > b.correlation;
 						 });
 
 	} else {

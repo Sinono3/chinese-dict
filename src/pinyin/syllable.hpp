@@ -17,9 +17,9 @@ struct Syllable {
 
 	/// The higher the correlation, the closer the syllables are
 	int getCorrelation (const Syllable &other) const {
-		int consonantCorr = !(consonant == other.consonant);
-		int vowelCorr = !(vowel == other.vowel);
-		int toneCorr = !(tone == other.tone);
+		int consonantCorr = consonant == other.consonant;
+		int vowelCorr = vowel == other.vowel;
+		int toneCorr = tone == other.tone;
 		// Neutral correlates with any tone
 		if (tone == Tone::Neutral || other.tone == Tone::Neutral)
 			toneCorr = 1;

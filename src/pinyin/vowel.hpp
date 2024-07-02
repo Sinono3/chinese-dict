@@ -52,6 +52,6 @@ const VowelStr VOWEL_STR[] = {
 	{In, "in", 0},		{Ua, "ua", 1},		{Uo, "uo", 1},	  {Ui, "ui", 1},	{Un, "un", 0},
 	{Ue, "ue", 1},		{Iao, "iao", 1},	{Ian, "ian", 1}, {Ing, "ing", 0}, {Uai, "uai", 1},
 	{Uan, "uan", 1},	{Ang, "ang", 0},	{Eng, "eng", 0}, {Ong, "ong", 0}, {Iang, "iang", 1},
-	{Iong, "iong", 1}, {Uang, "uang", 2},
+	{Iong, "iong", 1}, {Uang, "uang", 1},
 };
 const int VOWEL_COUNT = std::extent<decltype(VOWEL_STR)>::value;
