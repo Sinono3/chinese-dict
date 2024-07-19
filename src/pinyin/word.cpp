@@ -4,6 +4,7 @@
 #include <ostream>
 #include <optional>
 #include <vector>
+#include <iostream>
 
 std::ostream &operator<<(std::ostream &out, const PinyinWord &word) {
 	for (auto syl : word)
@@ -73,8 +74,14 @@ PinyinWord parseWord(std::string_view text) {
 			break;
 		}
 
-		if (vowel.has_value() && tone.has_value()) {
-			Syllable syl = {cons.has_value() ? cons.value() : NoConsonant, vowel.value(), tone.value()};
+		// std::cout 
+		// 	<< "Cons: " << (cons.has_value() ? cons.value(): ) << " " 
+		// 	<< "Vowel: " << (vowel.has_value() ? vowel.value(): 0) << " " 
+		// 	<< "Tone: " << (tone.has_value() ? (int)tone.value(): 0) << std::endl;
+
+		if (cons.has_value() && vowel.has_value() && tone.has_value()) {
+			// Syllable syl = {cons.has_value() ? cons.value() : NoConsonant, vowel.value(), tone.value()};
+			Syllable syl = {cons.value(), vowel.value(), tone.value()};
 			vec.push_back(syl);
 		} else {
 			break;

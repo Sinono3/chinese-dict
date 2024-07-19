@@ -63,6 +63,7 @@ void updateResults(AppContext* ctx) {
 
 	for (auto result : results) {
 		auto &entry = entries[result.entryIdx];
+		// std::cout << result.entryIdx << std::endl;
 		std::stringstream display;
 		display << entry.characters << " " << PrettyPinyinWord{entry.pinyin};
 		ctx->resultList->add(display.str().c_str());
@@ -228,20 +229,20 @@ int main() {
 	Fl_Group *definitionPanel = new Fl_Group(200, 80, 400, 400);
 	definitionPanel->begin();
 
-	Fl_Box *headword = new Fl_Box(200, 80, 400, 100);
-	headword->align(FL_ALIGN_INSIDE | FL_ALIGN_TOP_LEFT);
-	headword->labelsize(80);
-	headword->labelfont(FL_BOLD);
+		Fl_Box *headword = new Fl_Box(200, 80, 400, 100);
+		headword->align(FL_ALIGN_INSIDE | FL_ALIGN_TOP_LEFT);
+		headword->labelsize(80);
+		headword->labelfont(FL_BOLD);
 
-	Fl_Box *pronunciation = new Fl_Box(200, 180, 400, 100);
-	pronunciation->align(FL_ALIGN_INSIDE | FL_ALIGN_TOP_LEFT);
-	pronunciation->labelsize(30);
-	pronunciation->labelfont(FL_BOLD);
+		Fl_Box *pronunciation = new Fl_Box(200, 180, 400, 100);
+		pronunciation->align(FL_ALIGN_INSIDE | FL_ALIGN_TOP_LEFT);
+		pronunciation->labelsize(30);
+		pronunciation->labelfont(FL_BOLD);
 
-	Fl_Box *definition = new Fl_Box(200, 280, 400, 200);
-	definition->align(FL_ALIGN_INSIDE | FL_ALIGN_TOP_LEFT | FL_ALIGN_WRAP);
-	definition->labelsize(20);
-	definition->labelfont(FL_BOLD);
+		Fl_Box *definition = new Fl_Box(200, 280, 400, 200);
+		definition->align(FL_ALIGN_INSIDE | FL_ALIGN_TOP_LEFT | FL_ALIGN_WRAP);
+		definition->labelsize(20);
+		definition->labelfont(FL_BOLD);
 
 	definitionPanel->end();
 

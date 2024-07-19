@@ -3,6 +3,8 @@ BUILDDIR = build
 EXE = build/chinese-dict
 
 CXX = g++
+# For cross-compilation
+# CXX = /opt/homebrew/Cellar/mingw-w64/12.0.0/bin/x86_64-w64-mingw32-gcc
 CXXFLAGS = -Wall --std=c++20 $(shell fltk-config --cxxflags)
 LFLAGS = $(shell fltk-config --ldstaticflags)
 

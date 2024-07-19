@@ -5,8 +5,9 @@
 #include <vector>
 #include <algorithm>
 
-std::vector<SearchResult> searchInEntries(std::span<const DictionaryEntry> entries,
-								 std::string_view query) {
+std::vector<SearchResult> searchInEntries(
+	std::span<const DictionaryEntry> entries, std::string_view query
+) {
 	std::vector<SearchResult> results;
 
 	if (query.length() > 0) {
