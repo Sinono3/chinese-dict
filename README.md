@@ -8,6 +8,42 @@ The GUI is built using FLTK.
 - FLTK 1.3
 - C++20
 
+## Explanation
+
+#### `src/main.cpp`
+
+Contains the main function and all the UI logic.
+
+#### `src/DictionaryEntry.hpp`/`src/DictionaryEntry.cpp`
+
+Defines the `DictionaryEntry` struct.
+
+#### `src/csv.hpp`/`src/csv.cpp`
+
+Contains functions for loading and saving to CSV files.
+
+#### `src/search.hpp`/`src/search.cpp`
+
+Contains the function to search in the entries.
+Also defines the `SearchResult` struct.
+
+#### `src/pinyin/*.hpp`/`src/pinyin/*.cpp`
+
+Contains the following enums/structs/classes:
+
+- Tone: Enum representing the five tones in Pinyin.
+- Consonant: Enum representing a consonant.
+- ConsonantStr: A consonant and a string.
+- Vowel: Enum representing 1-3 vowels.
+- VowelStr: A vowel and a string.
+- Syllable: A consonant, a vowel and a tone.
+- PrettySyllable: Wrapper for Syllable. Output operator overloaded to pretty print the syllable.
+- PrettyWord: Wrapper for Word. Output operator overloaded to pretty print the syllable.
+
+Also some type definitions:
+
+- PinyinWord = `std::vector<Syllable>`
+
 ### Linux/MacOS
 
 Install the respective development FLTK package available in your distribution.
